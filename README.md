@@ -3,19 +3,6 @@
 ![Logo Glucontrol_App](./images/logo.png)
 
 Glucontrol_App es una aplicación avanzada diseñada para facilitar la gestión y el seguimiento de la diabetes. Este proyecto es el resultado de una formación impartida por Inserta Arelance, combinando conocimientos teóricos y prácticos para desarrollar una solución tecnológica integral y accesible para pacientes con diabetes y profesionales de la salud.
-## Colaboradores
-<p>https://github.com/3ntr0pia
-</p>
-<p>https://github.com/xaby19
-</p>
-<p>https://github.com/blackl1ght98
-</p>
-<p>https://github.com/David2074
-</p>
-<p>https://github.com/irenelm86
-</p>
-<p>https://github.com/MocaiMocai
-</p>
 
 ## Backend: DiabetesNoteBook 📚
 
