@@ -2,7 +2,9 @@ div#slider {
   overflow: hidden;
   border-radius: 1.2rem;
   box-shadow: 0 0 20px 1px rgba(0, 0, 0, 0.8);
-} /* las imágenes no van a salir del márgen de la pantalla*/
+  position: relative;
+}
+
 div#slider figure img {
   aspect-ratio: 16/9;
   width: 20%;
@@ -16,10 +18,10 @@ div#slider figure {
   left: 0;
   text-align: left;
   font-size: 0;
-  animation: 20s slidy infinite; /*el movimiento se va a mantener de forma indefinida -infinito-*/
+  animation: slidy 20s infinite; /* Mantenemos la misma animación */
 }
 
-/*esta parte del código define el movimiento de las imágenes a la izquierda*/
+/* Animación igual a la que tenías antes */
 @keyframes slidy {
   0% {
     left: 0%;

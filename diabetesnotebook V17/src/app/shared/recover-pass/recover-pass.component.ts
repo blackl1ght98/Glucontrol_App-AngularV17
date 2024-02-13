@@ -2,14 +2,14 @@ import { Component } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { IRecover } from '../../interfaces/loginResponse.interface';
 import { RecordarPassService } from '../../services/recordar-pass.service';
-import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import LazyLoadImageDirective from '../directives/lazy-load-image.directive';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-recover-pass',
   standalone: true,
-  imports: [CommonModule, FormsModule, LazyLoadImageDirective],
+  imports: [LazyLoadImageDirective, FormsModule, CommonModule],
   templateUrl: './recover-pass.component.html',
   styleUrl: './recover-pass.component.css',
 })

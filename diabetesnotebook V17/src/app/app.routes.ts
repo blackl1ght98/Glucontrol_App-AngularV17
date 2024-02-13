@@ -53,6 +53,7 @@ export const routes: Routes = [
       },
     ],
   },
+  //{ path: 'recover-pass/:token', component: RecoverPassComponent },
   {
     path: 'shared',
     loadComponent: () => import('./shared/shared.component'),

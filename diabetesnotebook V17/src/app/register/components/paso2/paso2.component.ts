@@ -4,11 +4,17 @@ import { IRegister } from '../../../interfaces/register.interface';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import CalculadoraImcComponent from '../../../shared/calculadora-imc/calculadora-imc.component';
+import LazyLoadImageDirective from '../../../shared/directives/lazy-load-image.directive';
 
 @Component({
   selector: 'register-paso2',
   standalone: true,
-  imports: [CommonModule, FormsModule, CalculadoraImcComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    CalculadoraImcComponent,
+    LazyLoadImageDirective,
+  ],
   templateUrl: './paso2.component.html',
   styleUrl: './paso2.component.css',
 })

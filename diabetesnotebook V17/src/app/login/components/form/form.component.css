@@ -1,3 +1,53 @@
+/* Estilos generales */
+.sectionLogin {
+  position: relative;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  justify-items: center;
+  color: var(--main--colorForeground);
+  font-family: "Akinson-Hyperlegible-Regular";
+}
+
+.error-form {
+  color: var(--main--colorErrorOrDenegate);
+  font-style: italic;
+}
+
+.input input {
+  width: 100%;
+  height: auto;
+  padding: 0.5rem;
+  border-radius: 10px;
+  text-shadow: #d9dbda;
+  background-color: var(--main--colorBackGroundElements);
+  border: 0.5px solid #002d52;
+}
+
+.btnInicio {
+  padding: 0.2rem;
+  border: none;
+  border-radius: 5px;
+  background-color: var(--main--colorBackGroundElements);
+  font-size: large;
+  color: var(--main--colorForeground);
+}
+
+.btnInicio:hover {
+  background-color: var(--main--colorHoverBtnAccept);
+}
+
+.aForgetPass a {
+  position: relative;
+  top: 1.2rem;
+  margin: 0.25rem;
+  text-decoration: none;
+  color: var(--main--colorForeground);
+}
+
+.aForgetPass a:hover {
+  text-decoration: underline;
+}
+
 .botoncicos {
   display: flex;
   justify-content: space-evenly;
@@ -31,99 +81,30 @@
   align-items: center;
 }
 
-.sectionLogin {
-  position: relative;
-  display: grid;
-  grid-template-rows: auto 1fr auto;
-  justify-items: center;
-  color: var(--main--colorForeground);
-  font-family: "Akinson-Hyperlegible-Regular";
-}
-
-.error-form {
-  color: var(--main--colorErrorOrDenegate);
-  font-style: italic;
-}
-.input input {
-  width: 100%;
-  height: auto;
-  padding: 0.5rem;
-  border-radius: 10px;
-  text-shadow: #d9dbda;
-  background-color: var(--main--colorBackGroundElements);
-  border: 0.5px solid #002d52;
-}
-
-.btnInicio {
-  padding: 0.2rem;
-  border: none;
-  border-radius: 5px;
-  background-color: var(--main--colorBackGroundElements);
-  font-size: large;
-  color: var(--main--colorForeground);
-}
-.btnInicio:hover {
-  background-color: var(--main--colorHoverBtnAccept);
-}
-
-/* .aBack {
-  position: relative;
-  top: 0.7rem;
-  margin: 1rem;
-  padding: 0.4rem;
-  border-radius: 5px;
-  text-decoration: none;
-  font-size: large;
-  background-color: var(--main--colorBackGroundElements);
-  color: var(--main--colorForeground);
-} */
-
-/* .aBack:hover {
-  text-decoration: underline;
-} */
-
-.aForgetPass a {
-  position: relative;
-  top: 1.2rem;
-  margin: 0.25rem;
-  text-decoration: none;
-  color: var(--main--colorForeground);
-}
-
-.easy-reading {
-  position: relative;
-  top: 1rem;
-  right: 3rem;
-}
-
-.aForgetPass a:hover {
-  text-decoration: underline;
-}
-
-.bottom {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-}
-
-@media (width < 750px) {
+/* Estilos para pantallas más pequeñas */
+@media screen and (max-width: 750px) {
   .btnInicio {
+    /* Estilos específicos para el botón en pantallas más pequeñas */
     left: 5rem;
   }
 }
-@media (390px < width < 560px) {
+
+@media screen and (max-width: 560px) {
   .btnInicio {
+    /* Estilos específicos para el botón en pantallas más pequeñas */
     left: 3rem;
   }
   .aForgetPass {
+    /* Estilos específicos para el contenedor de los enlaces en pantallas más pequeñas */
     position: relative;
     display: flex;
     flex-direction: column;
   }
 }
-@media (width < 390px) {
+
+@media screen and (max-width: 390px) {
   .btnInicio {
+    /* Estilos específicos para el botón en pantallas aún más pequeñas */
     left: 2rem;
   }
 }

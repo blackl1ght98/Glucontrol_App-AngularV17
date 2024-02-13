@@ -4,11 +4,12 @@ import { IFinalRegister } from '../../../interfaces/finalregister.interface';
 import { IRegister } from '../../../interfaces/register.interface';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import LazyLoadImageDirective from '../../../shared/directives/lazy-load-image.directive';
 
 @Component({
   selector: 'register-paso3',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, LazyLoadImageDirective],
   templateUrl: './paso3.component.html',
   styleUrl: './paso3.component.css',
 })

@@ -55,6 +55,7 @@ export class AuthServiceService {
         )
     );
   }
+
   //Esto recarga los datos del localstorage, por si se ha modificado algun dato del usuario
   updateUser(user: IUserLoginResponse): void {
     localStorage.setItem('user', JSON.stringify(user));

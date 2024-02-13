@@ -6,8 +6,16 @@
   <h2 class="visually-hidden" aria-label="Página para conectarse">Conectarse</h2>
   <form (ngSubmit)="login()">
     <div class="input">
-      <label for="usuario-form">Nombre de Usuario</label>
-      <input type="text" id="usuario-form" name="usuario" [(ngModel)]="usuario" />
+      <!-- <label for="usuario-form">Nombre de Usuario</label> -->
+      <!-- <input type="text" id="usuario-form" name="usuario" [(ngModel)]="usuario  " /> -->
+      <label for="usuario-form">Correo electronico</label>
+      <input type="email" id="usuario-form" name="usuario" [(ngModel)]="email" />
+
+
+
+
+
+
     </div>
     <div class="input">
       <label for="password-form">Contraseña</label>
@@ -16,14 +24,19 @@
     <div>
       <div class="bottom">
         <button class="btnInicio">Iniciar Sesión</button>
+
+
         <span class="error-form">{{ error }}</span>
       </div>
+
     </div>
     <div class="aForgetPass">
       <a tabindex="0" aria-label="Enlace para recordar la contraseña" (click)="verOlvidado()">He olvidado la
         contraseña</a>
       <a routerLink="/register">Registrarse</a>
     </div>
+
+
   </form>
 </section>
 <section *ngIf="recordar" class="sectionLogin">

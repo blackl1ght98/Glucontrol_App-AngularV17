@@ -1,5 +1,6 @@
 export interface ILogin {
   UserName: string;
+  Email?: string;
   Password: string;
 }
 

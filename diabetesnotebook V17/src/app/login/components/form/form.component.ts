@@ -1,4 +1,3 @@
-import { Component } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { IRecover, ILogin } from '../../../interfaces/loginResponse.interface';
 import { AuthServiceService } from '../../../services/auth-service.service';
@@ -7,6 +6,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import ModalComponent from '../../../shared/modal/modal.component';
+import { Component } from '@angular/core';
 
 @Component({
   selector: 'login-form',
@@ -18,6 +18,7 @@ import ModalComponent from '../../../shared/modal/modal.component';
 })
 export default class FormComponent {
   usuario: string = '';
+  email: string = '';
   password: string = '';
   mail: string = '';
   error: string = '';
@@ -53,6 +54,7 @@ export default class FormComponent {
   login() {
     const datoLogin: ILogin = {
       UserName: this.usuario,
+      Email: this.email,
       Password: this.password,
     };
 
