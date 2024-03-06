@@ -35,13 +35,14 @@ export default class VademecumComponent {
     nombre: '',
     primerApellido: '',
     segundoApellido: '',
+    email: '',
     sexo: Sexo.hombre,
     edad: 0,
     peso: 0,
     altura: 0,
     actividad: '',
     tipoDiabetes: '',
-    medicacion: '',
+    medicacion: [],
     insulina: false,
   };
 
@@ -93,34 +94,34 @@ export default class VademecumComponent {
   }
 
   getUserData() {
-    this.userService
-      .getUsuarioYPersonaInfo(this.authService.userValue!.id)
-      .subscribe({
-        next: (res) => {
-          console.log(res);
-          this.usuario = {
-            id: res[0].id,
-            avatar: res[0].avatar,
-            userName: res[0].userName,
-            nombre: res[1].nombre,
-            primerApellido: res[1].primerApellido,
-            segundoApellido: res[1].segundoApellido,
-            sexo: res[1].sexo,
-            edad: res[1].edad,
-            peso: res[1].peso,
-            altura: res[1].altura,
-            actividad: res[1].actividad,
-            tipoDiabetes: res[1].tipoDiabetes,
-            medicacion: res[1].medicacion,
-            insulina: res[1].insulina,
-          };
-          this.medicamentosFromBackend = this.usuario.medicacion.split(',');
-          console.log(this.usuario);
-        },
-        error: (err) => {
-          console.log(err);
-        },
-      });
+    this.userService.getUserById(this.authService.userValue!.id).subscribe({
+      next: (res) => {
+        this.usuario = {
+          id: res.id,
+          avatar: res.avatar,
+          userName: res.userName,
+          nombre: res.nombre,
+          primerApellido: res.primerApellido,
+          segundoApellido: res.segundoApellido,
+          email: res.email,
+          sexo: res.sexo,
+          edad: res.edad,
+          peso: res.peso,
+          altura: res.altura,
+          actividad: res.actividad,
+          tipoDiabetes: res.tipoDiabetes,
+          medicacion: res.usuarioMedicacions!.map(
+            (m) => m.idMedicacionNavigation.nombre
+          ),
+          insulina: res.insulina,
+        };
+        this.medicamentosFromBackend = this.usuario.medicacion; // Asignar los medicamentos del usuario a medicamentosFromBackend
+        console.log(this.usuario);
+      },
+      error: (err) => {
+        console.log(err);
+      },
+    });
   }
 
   addMedicamento() {
@@ -130,14 +131,15 @@ export default class VademecumComponent {
       this.error = 'El campo no puede estar vacío.';
       return;
     }
-    if (!this.medicamentosFromBackend.includes(nuevoMedicamentoLowerCase)) {
-      this.medicamentosFromBackend.push(nuevoMedicamentoLowerCase);
-      this.nuevoMedicamento = '';
-      this.usuario.medicacion = this.medicamentosFromBackend.join(',');
+
+    if (!this.usuario.medicacion.includes(nuevoMedicamentoLowerCase)) {
+      this.usuario.medicacion.push(nuevoMedicamentoLowerCase);
 
       this.userService.actualizarUsuario(this.usuario).subscribe({
         next: (res) => {
           this.error = '';
+          this.nuevoMedicamento = '';
+          this.getUserData(); // Actualizar los datos del usuario después de la actualización
         },
         error: (err) => {
           console.log(err);
@@ -151,29 +153,25 @@ export default class VademecumComponent {
   eliminarMedicamento(medicamentoAEliminar: string) {
     const medicamentoAEliminarLowerCase =
       medicamentoAEliminar.toLocaleLowerCase();
-    const existeMedicamento = this.medicamentosFromBackend.includes(
-      medicamentoAEliminarLowerCase
+    const index = this.usuario.medicacion.findIndex(
+      (med) => med.toLocaleLowerCase() === medicamentoAEliminarLowerCase
     );
 
-    if (!existeMedicamento) {
+    if (index !== -1) {
+      this.usuario.medicacion.splice(index, 1);
+
+      this.userService.actualizarUsuario(this.usuario).subscribe({
+        next: (res) => {
+          console.log('Medicamento eliminado:', medicamentoAEliminar);
+          this.error = '';
+          this.getUserData(); // Actualizar los datos del usuario después de la actualización
+        },
+        error: (err) => {
+          console.error('Error al actualizar el usuario:', err);
+        },
+      });
+    } else {
       this.error = 'El medicamento no existe en la lista.';
-      return;
     }
-
-    this.medicamentosFromBackend = this.medicamentosFromBackend.filter(
-      (med) => med.toLocaleLowerCase() !== medicamentoAEliminarLowerCase
-    );
-
-    this.usuario.medicacion = this.medicamentosFromBackend.join(',');
-    this.userService.actualizarUsuario(this.usuario).subscribe({
-      next: (res) => {
-        console.log('Medicamento eliminado:', medicamentoAEliminar);
-        this.nuevoMedicamento = '';
-        this.error = '';
-      },
-      error: (err) => {
-        console.error('Error al actualizar el usuario:', err);
-      },
-    });
   }
 }

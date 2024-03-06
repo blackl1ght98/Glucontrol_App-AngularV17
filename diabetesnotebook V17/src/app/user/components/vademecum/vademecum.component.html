@@ -4,7 +4,7 @@
       title="Salir de lectura fácil">Cerrar</span></button>
 
   <div class="header">
-    <h2>Vademecum</h2> <!-- veo más lógico popner el nombre del navbar, q no sé si se puede cambiar-->
+    <h2>Vademecum</h2>
     <p>Selecciona uno de tus medicamentos registrados para obtener más información</p>
   </div>
 
@@ -14,12 +14,33 @@
       <div>
         <fieldset>
           <legend class="visually-hidden">Selecciona el medicamento de tu lista de medicamentos</legend>
-          <label for="medicamento">Lista medicamentos</label>
-          <select class='form-select' name="listaMedicamentos" id="listaMedicamentos"
+
+          <!-- <select class='form-select' name="listaMedicamentos" id="listaMedicamentos"
             [(ngModel)]='medicamentoSeleccionado' name="medicamentoSeleccionado" (change)='medicamentoChange()'>
             <option selected>Selecciona un medicamento</option>
             <option *ngFor="let med of medicamentosFromBackend"> {{med}} </option>
-          </select>
+          </select> -->
+
+          <table class="table table-hover">
+            <caption class='visually-hidden'>Lista de medicamentos</caption>
+            <thead class="thead-dark">
+              <tr>
+                <th scope="col">Nombre Medicamento</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let med of medicamentosFromBackend">
+
+                <td>{{ med }} </td>
+                <button (click)="medicamentoSeleccionado = med; medicamentoChange()"><i
+                    class="bi bi-info-circle"></i></button>
+                <button (click)="eliminarMedicamento(med)" title="Eliminar {{ med }}">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </tr>
+
+            </tbody>
+          </table>
         </fieldset>
       </div>
 
@@ -29,12 +50,12 @@
           name='nuevoMedicamento' required>
         <p class='error-form'>{{error}}</p>
         <button class="btn" type="submit" title="en este botón puedes añadir un medicamento nuevo">
-          Añadir <!--añadir o eliminar 'medicamento' es redundante-->
+          Añadir
         </button>
-        <button class="btn" type="button" (click)="eliminarMedicamento(nuevoMedicamento)"
+        <!-- <button class="btn" type="button" (click)="eliminarMedicamento(nuevoMedicamento)"
           title="en este botón puedes eliminar uno de tus medicamentos">
-          Eliminar
-        </button>
+          <i class="bi bi-trash"></i>
+        </button> -->
 
       </form>
 
@@ -98,7 +119,6 @@
           </td>
           <td class='chama'>
             <img *ngIf="med.fotos && med.fotos[0]" appLazyLoadImage [src]="med.fotos[0].url" alt="Foto de la caja">
-
             <i *ngIf="!med.fotos || !med.fotos[1]" class="bi bi-box-seam text-danger"></i>
           </td>
           <td>

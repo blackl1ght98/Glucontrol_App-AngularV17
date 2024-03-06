@@ -2,6 +2,7 @@
 using DiabetesNoteBook.Application.Interfaces;
 using DiabetesNoteBook.Domain.Models;
 using DiabetesNoteBook.Infrastructure.Interfaces;
+using System.Security.Claims;
 
 namespace DiabetesNoteBook.Application.Services
 {
@@ -12,39 +13,49 @@ namespace DiabetesNoteBook.Application.Services
         //Se llama a base de datos y al servicio.
 
         private readonly DiabetesNoteBookContext _context;
-        private readonly ISaveNuevaMedicion _saveNuevaMedicion;
-        //Se crea el constructor
+		private readonly IHttpContextAccessor _httpContextAccessor;
+		//Se crea el constructor
 
-        public NuevaMedicionService(DiabetesNoteBookContext context, ISaveNuevaMedicion saveNuevaMedicion)
+		public NuevaMedicionService(DiabetesNoteBookContext context, IHttpContextAccessor accessor)
         {
             _context = context;
-            _saveNuevaMedicion = saveNuevaMedicion;
+            _httpContextAccessor = accessor;
         }
         //Agregamos el metodo que se encuentra en la interfaz junto con el DTOMediciones
 
         public async Task NuevaMedicion(DTOMediciones mediciones)
         {
             //Creamos una nueva medicion
-
-            var nuevaMedicion = new Medicione()
+            var userId = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            int id;
+            if (int.TryParse(userId, out id))
             {
-                Fecha = mediciones.Fecha,
-                Regimen = mediciones.Regimen,
-                PreMedicion = mediciones.PreMedicion,
-                PostMedicion = mediciones.PostMedicion,
-                GlucemiaCapilar = mediciones.GlucemiaCapilar,
-                BolusComida = mediciones.BolusComida,
-                BolusCorrector = mediciones.BolusCorrector,
-                PreDeporte = mediciones.PreDeporte,
-                DuranteDeporte = mediciones.DuranteDeporte,
-                PostDeporte = mediciones.PostDeporte,
-                RacionHc= mediciones.RacionHC,
-                Notas = mediciones.Notas,
-                IdPersona = mediciones.Id_Persona,
-            };
-            //Llamamos al servicio para que la guarde
+                var nuevaMedicion = new Medicione()
+                {
+                    Fecha = mediciones.Fecha,
+                    Regimen = mediciones.Regimen,
+                    PreMedicion = mediciones.PreMedicion,
+                    PostMedicion = mediciones.PostMedicion,
+                    GlucemiaCapilar = mediciones.GlucemiaCapilar,
+                    BolusComida = mediciones.BolusComida,
+                    BolusCorrector = mediciones.BolusCorrector,
+                    PreDeporte = mediciones.PreDeporte,
+                    DuranteDeporte = mediciones.DuranteDeporte,
+                    PostDeporte = mediciones.PostDeporte,
+                    RacionHc = mediciones.RacionHC,
+                    Notas = mediciones.Notas,
+                    IdUsuario = id
 
-            await _saveNuevaMedicion.SaveNuevaMecion(nuevaMedicion);
+                };
+                //Llamamos al servicio para que la guarde
+                await _context.Mediciones.AddAsync(nuevaMedicion);
+                //Guardamos los cambios
+
+                await _context.SaveChangesAsync();
+            }
+          
+
+
 
 
         }

@@ -5,7 +5,6 @@ import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { AuthServiceService } from '../../../services/auth-service.service';
 import FormComponent from '../form/form.component';
 import LazyLoadImageDirective from '../../../shared/directives/lazy-load-image.directive';
-import { defer } from 'rxjs';
 
 @Component({
   selector: 'login-info',

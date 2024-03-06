@@ -7,5 +7,7 @@ namespace DiabetesNoteBook.Application.Interfaces
         Task SendEmailAsyncRegister(DTOEmail userData);
         Task SendEmailAsyncChangePassword(DTOEmail userData);
         Task SendEmailAsyncEmailChanged(DTOEmailNotification emailNotification);
+        Task SendMeasurementsByEmailAsync();
+
     }
 }

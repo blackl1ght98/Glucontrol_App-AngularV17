@@ -4,7 +4,6 @@ import { AuthServiceService } from '../../../services/auth-service.service';
 import { RecordarPassService } from '../../../services/recordar-pass.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpClient, HttpClientModule } from '@angular/common/http';
 import ModalComponent from '../../../shared/modal/modal.component';
 import { Component } from '@angular/core';
 

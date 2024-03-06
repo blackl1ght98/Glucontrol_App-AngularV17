@@ -14,83 +14,103 @@ namespace DiabetesNoteBook.Application.Services
 
         private readonly DiabetesNoteBookContext _context;
         private readonly HashService _hashService;
-        private readonly INewRegisterRepository _newRegisterRepository;
-        //Creamos el contructor
+        
 
-        public NewRegisterService(DiabetesNoteBookContext context, HashService hashService, INewRegisterRepository newRegisterRepository)
+		//Creamos el contructor
+
+		public NewRegisterService(DiabetesNoteBookContext context, HashService hashService
+			 )
         {
             _context = context;
             _hashService = hashService;
-            _newRegisterRepository = newRegisterRepository;
+           
+
         }
         //Agregamos el metodo que esta en la interfaz al cual se le pasa un DTORegister
         //que tiene los datos necesarios para registrar un usuario
         public async Task NewRegister(DTORegister userData)
         {
-            //Este método inicia una nueva transacción de base de datos.
-
-            using (var transaction = _context.Database.BeginTransaction())
+            try
             {
-                try
+                var resultadoHash = _hashService.Hash(userData.Password);
+
+                var newUsuario = new Usuario
                 {
-                    //Llamamos al servicio _hashService y usamos el metodo Hash para cifrar la 
-                    //contraseña que el usuario nos pase
-                    var resultadoHash = _hashService.Hash(userData.Password);
-                    //Creamos el nuevo usuario
+                    Avatar = userData.Avatar,
+                    UserName = userData.UserName,
+                    Email = userData.Email,
+                    Password = resultadoHash.Hash,
+                    Salt = resultadoHash.Salt,
+                    Rol = "user",
+                    Nombre = userData.Nombre,
+                    PrimerApellido = userData.PrimerApellido,
+                    SegundoApellido = userData.SegundoApellido,
+                    Sexo = userData.Sexo,
+                    Edad = userData.Edad,
+                    Peso = userData.Peso,
+                    Altura = userData.Altura,
+                    Actividad = userData.Actividad,
+                    TipoDiabetes = userData.TipoDiabetes,
+                    Insulina = userData.Insulina
+                };
 
-                    var newUsuario = new Usuario
-                    {
-                        Avatar = userData.Avatar,
-                        UserName = userData.UserName,
-                        Email = userData.Email,
-                        Password = resultadoHash.Hash,
-                        Salt = resultadoHash.Salt,
-                        Rol = "user"
-                    };
+                // Guardar el usuario
+                await _context.Usuarios.AddAsync(newUsuario);
+                //Guardamos los cambios
 
-                    // Guardar el usuario, llamando a _newRegisterRepository
+                await _context.SaveChangesAsync();
+                // Dividir la cadena de medicamentos en medicamentos individuales
+                var medicamentos = userData.Medicacion.SelectMany(m => m.Split(','));
 
-                    await _newRegisterRepository.SaveNewRegisterUser(newUsuario);
-
-                    // Obtener el usuario después de guardarlo
-                    var usuario = await _context.Usuarios.FirstOrDefaultAsync(x => x.UserName == userData.UserName);
-                    //Creamos la persona para ese usuario
-
-                    var nuevaPersona = new Persona
-                    {
-                        Nombre = userData.Nombre,
-                        PrimerApellido = userData.PrimerApellido,
-                        SegundoApellido = userData.SegundoApellido,
-                        Sexo = userData.Sexo,
-                        Edad = userData.Edad,
-                        Peso = userData.Peso,
-                        Altura = userData.Altura,
-                        Actividad = userData.Actividad,
-                        Medicacion = String.Join(",",userData.Medicacion),//esto hace que en front se devuelva un array separado por comas
-                        TipoDiabetes = userData.TipoDiabetes,
-                        Insulina = userData.Insulina,
-                        UserId = usuario.Id
-                    };
-                    
-
-                    // Guardar la persona
-                    await _newRegisterRepository.SaveNewRegisterPerson(nuevaPersona);
-                    //Si todas las operaciones dentro del bloque try tienen éxito
-                    //sin ninguna excepción, se llama al método Commit(). Esto confirma
-                    //todos los cambios realizados dentro de la transacción en la base de datos,
-                    //haciendo que los cambios sean permanentes.
-                    transaction.Commit();
-                }
-                catch
+                // Guardar los medicamentos proporcionados por el usuario como registros independientes en la tabla Medicaciones
+                foreach (var medicacionNombre in medicamentos)
                 {
-                    //Bloque catch: Si ocurre una excepción durante alguna de las operaciones
-                    //dentro del bloque try, se llama al método Rollback(). Esto deshace cualquier
-                    //cambio realizado dentro de la transacción, asegurando que la base de datos
-                    //permanezca en un estado consistente.
-                    transaction.Rollback();
+                    // Eliminar espacios en blanco alrededor del nombre de la medicación
+                    var nombreMedicacion = medicacionNombre.Trim();
+					// Verificar si la medicación ya existe en la base de datos
+					
 
-                }
+				var medicacionExistente = await _context.Medicaciones.FirstOrDefaultAsync(m => m.Nombre == nombreMedicacion);
+					if (medicacionExistente == null)
+					{
+					    // Si la medicación no existe, se crea un nuevo registro en la tabla Medicaciones
+					    var nuevaMedicacion = new Medicacione { Nombre = nombreMedicacion };
+					    _context.Medicaciones.Add(nuevaMedicacion);
+					}
+				}
+				// Guardar los cambios en la base de datos
+				await _context.SaveChangesAsync();
+
+                // Asociar las medicaciones con el usuario en la tabla UsuarioMedicaciones
+                foreach (var medicacionNombre in medicamentos)
+                {
+                    // Eliminar espacios en blanco alrededor del nombre de la medicación
+                    var nombreMedicacion = medicacionNombre.Trim();
+					//await _userMedicationAssociation.AssociateMedicationWithUser(newUsuario.Id, nombreMedicacion);
+
+					// Obtener el objeto Medicacion correspondiente al nombre de la medicacion
+					var medicacion = await _context.Medicaciones.FirstOrDefaultAsync(m => m.Nombre == nombreMedicacion);
+
+					var usuarioMedicacion = new UsuarioMedicacion
+					{
+					    // Asignar el ID del nuevo usuario
+					    IdUsuario = newUsuario.Id,
+					    // Asignar el ID de la medicación
+					   IdMedicacion = medicacion.IdMedicacion
+					};
+					//// Agregar la relación a la tabla UsuarioMedicaciones
+					_context.UsuarioMedicacions.Add(usuarioMedicacion);
+				}
+				// Guardar los cambios en la base de datos
+				await _context.SaveChangesAsync();
+
+			}
+            catch
+            {
+                
             }
         }
+
+
     }
 }

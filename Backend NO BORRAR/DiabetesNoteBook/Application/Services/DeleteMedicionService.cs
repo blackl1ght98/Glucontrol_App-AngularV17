@@ -13,24 +13,25 @@ namespace DiabetesNoteBook.Application.Services
         //Llamamos a base de datos y servicio para poder hacer uso de ellos
 
         private readonly DiabetesNoteBookContext _context;
-        private readonly IDeleteMedicion _deleteMedicion;
-        //Creamos el constructor
+     
+		//Creamos el constructor
 
-        public DeleteMedicionService(DiabetesNoteBookContext context, IDeleteMedicion deleteMedicion)
+		public DeleteMedicionService(DiabetesNoteBookContext context, IDeleteMedicionServices deleteMedicionServices)
         {
             _context = context;
-            _deleteMedicion = deleteMedicion;
+           
         }
         //Agregamos el metodo que esta en la interfaz el cual tiene un DTOEliminarMedicion que contiene
         //los datos necesarios para gestionar la eliminacion
         public async Task DeleteMedicion(DTOEliminarMedicion delete)
         {
             //Buscamos la medicion por id
-
-            var deleteMedicion = await _context.Mediciones.FirstOrDefaultAsync(x => x.Id == delete.Id);
+            
+			var deleteMedicion = await _context.Mediciones.FirstOrDefaultAsync(x => x.Id == delete.Id);
             //Llamamos al servicio encargado de eliminar y le pasamos lo que se va ha eliminar
-
-            await _deleteMedicion.DeleteMedicion(deleteMedicion);
+            _context.Mediciones.Remove(deleteMedicion);
+            await _context.SaveChangesAsync();
+         
         }
     }
 }

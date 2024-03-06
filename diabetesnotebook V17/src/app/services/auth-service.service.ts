@@ -42,18 +42,17 @@ export class AuthServiceService {
   }
 
   loginUser(datoLogin: ILogin): Observable<IUserLoginResponse> {
-    return (
-      this.http
-        .post<IUserLoginResponse>(`${this.API_URL}/Users/login`, datoLogin)
-        //Dentro del pipe, con map, podemos modificar el valor que devuelve el observable , con el fin de guardarlo en el localstorage
-        .pipe(
-          map((user: IUserLoginResponse) => {
-            localStorage.setItem('user', JSON.stringify(user));
-            this.currentUserSubject.next(user);
-            return user;
-          })
-        )
-    );
+    return this.http
+      .post<IUserLoginResponse>(`${this.API_URL}/Users/login`, datoLogin)
+      .pipe(
+        map((response: IUserLoginResponse) => {
+          localStorage.setItem('user', JSON.stringify(response)); // Guardar el objeto completo en el localStorage
+          const token = response.token; // Extraer el token del objeto de respuesta
+          localStorage.setItem('token', token); // Guardar el token en el localStorage
+          this.currentUserSubject.next(response); // Emitir el usuario completo (o solo el token si lo necesitas)
+          return response; // Devolver la respuesta completa (opcional)
+        })
+      );
   }
 
   //Esto recarga los datos del localstorage, por si se ha modificado algun dato del usuario

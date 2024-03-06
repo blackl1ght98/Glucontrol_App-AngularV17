@@ -6,6 +6,9 @@ using Azure;
 using DiabetesNoteBook.Application.DTOs;
 using DiabetesNoteBook.Application.Interfaces;
 using DiabetesNoteBook.Application.Services;
+using DiabetesNoteBook.Infrastructure.Interfaces;
+using DiabetesNoteBook.Application.Services.Genereics;
+using Aspose.Pdf.Operators;
 
 namespace DiabetesNoteBook.Infrastructure.Controllers
 {
@@ -18,24 +21,34 @@ namespace DiabetesNoteBook.Infrastructure.Controllers
     {
         private readonly DiabetesNoteBookContext _context;
         private readonly HashService _hashService;
-        private readonly IHttpContextAccessor _httpContextAccessor;
+       
         private readonly IEmailService _emailService;
         private readonly IChangePassService _changePassService;
-        private readonly IOperationsService _operationsService;
         private readonly IChangePassMail _changePassMail;
+     
+      
+       
+        private readonly ExistUsersService _existUsersService;
+        private readonly ILogger<UsersController> _logger;
+
         //Se pone el constructor
 
         public ChangePasswordControllers(DiabetesNoteBookContext context, HashService hashService,
-            IHttpContextAccessor httpContextAccessor, IEmailService emailService, IChangePassService changePassService,
-            IOperationsService operationsService, IChangePassMail changePassMail)
+             IEmailService emailService, IChangePassService changePassService,
+            IChangePassMail changePassMail, 
+			 ExistUsersService existUsersService, ILogger<UsersController> logger)
         {
             _context = context;
             _hashService = hashService;
-            _httpContextAccessor = httpContextAccessor;
+            
             _emailService = emailService;
             _changePassService = changePassService;
-            _operationsService = operationsService;
             _changePassMail = changePassMail;
+           
+          
+           
+            _existUsersService = existUsersService;
+            _logger = logger;
         }
         //En este endpoint se usa para cambiar la contraseña del usuario el cual le llegan unos
         //datos que se albergan en un DTOCambioPassPorId
@@ -45,9 +58,11 @@ namespace DiabetesNoteBook.Infrastructure.Controllers
         {
             try
             {
-                //Se busca en base de datos el id del usuario para el que se va ha cambiar la contraseña
+                var usuarioDB = await _existUsersService.UserExistById(userData.Id);
 
-                var usuarioDB = await _context.Usuarios.AsTracking().FirstOrDefaultAsync(x => x.Id == userData.Id);
+                //var usuarioDB = await _getUsuarioIdWithAsTracking.ObtenerUsuarioPorId(userData.Id);
+                //Se busca en base de datos el id del usuario para el que se va ha cambiar la contraseña
+                //var usuarioDB = await _context.Usuarios.AsTracking().FirstOrDefaultAsync(x => x.Id == userData.Id);
                 //Si el id del  usuario no existe la operacion no existe
 
                 if (usuarioDB == null)
@@ -74,17 +89,14 @@ namespace DiabetesNoteBook.Infrastructure.Controllers
                 });
                 //Agregamos la operacion
 
-                await _operationsService.AddOperacion(new DTOOperation
-                {
-                    Operacion = "Nuevo registro",
-                    UserId = usuarioDB.Id
-                });
+               
                 //Si todo va bien se devuelve un ok
 
                 return Ok("Password cambiado con exito");
             }
-            catch
+            catch(Exception ex) 
             {
+                _logger.LogError(ex, "Error al procesar al cambiar la contraseña");
                 return BadRequest("En estos momentos no se ha podido realizar el cambio de contraseña, por favor, intentelo más tarde.");
             }
         }
@@ -96,57 +108,37 @@ namespace DiabetesNoteBook.Infrastructure.Controllers
         {
             try
             {
-                //Se realiza una busqueda en base de datos por el email del usuario
+                var usuarioDB = await _existUsersService.EmailExist(usuario.Email);
 
-                var usuarioDB = await _context.Usuarios.AsTracking().FirstOrDefaultAsync(x => x.Email == usuario.Email);
-                //Si el usuario se ha dado de baja este no podra cambiar la contraseña
+                if (usuarioDB is false)
+                {
+                    return Unauthorized("Este email no se encuentra registrado.");
+                }
 
-                if (usuarioDB.BajaUsuario == true)
+                var usuarioDBEmail = await _existUsersService.UserExistByEmail(usuario.Email);
+
+                if (usuarioDBEmail is false)
                 {
                     return Unauthorized("Usuario dado de baja con anterioridad");
                 }
-                //Si el usuario es distinto de null procede a generar el token
 
                 if (usuarioDB != null)
                 {
-                    //Genera una fecha para ese identificador unico
 
-                    DateTime fecha = DateTime.Now.AddHours(+1);
-                    //Genera el identificador unico
-                    Guid miGuid = Guid.NewGuid();
-                    string textoEnlace = Convert.ToBase64String(miGuid.ToByteArray());
-                    //de ese identificador quita los simbolos problematicos
-                    textoEnlace = textoEnlace.Replace("=", "").Replace("+", "").Replace("/", "").Replace("?", "").Replace("&", "").Replace("!", "").Replace("¡", "");
-                   //al campo EnlaceCambioPass se le asigna ese edentificador junto a una fecha
-                    usuarioDB.EnlaceCambioPass = textoEnlace;
-                    usuarioDB.FechaEnlaceCambioPass = fecha;
-                    //Esto se usa en caso de no haber front
-
-                    var ruta = $"Para restablecer su contraseña haga click en este enlace: {_httpContextAccessor.HttpContext.Request.Scheme}://{_httpContextAccessor.HttpContext.Request.Host}/api/ChangePasswordControllers/changePasswordMail?enlace={textoEnlace}";
-                    //Se llama al servicio _emailService que tiene un metodo SendEmailAsyncChangePassword al cual
-                    //se le pasa un DTOEmail que contiene los datos necesarios para cambiar la contraseña
                     await _emailService.SendEmailAsyncChangePassword(new DTOEmail
                     {
                         ToEmail = usuario.Email
                     });
-                    //Se agrega la operacion
-
-                    await _operationsService.AddOperacion(new DTOOperation
-                    {
-                        Operacion = "Cambio contraseña",
-                        UserId = usuarioDB.Id
-                    });
-                    //Si todo va bien se devuelve un ok
 
                     return Ok("Se enviaron las instrucciones a tu correo para restablecer la contraseña. Recuerda revisar la bandeja de Spam.");
 
                 }
-                //Esto se devuelve si el email no se ha encontrado
 
                 return BadRequest("Email no encontrado.");
             }
-            catch
+            catch (Exception ex)
             {
+                _logger.LogError(ex, "Error al procesar el envio de instrucciones");
                 return BadRequest("En este momento no puedo enviar las intrucciones, intentalo más tarde por favor.");
             }
         }
@@ -158,9 +150,11 @@ namespace DiabetesNoteBook.Infrastructure.Controllers
         {
             try
             {
-                //Comprobamos en base de datos si el token generado con el anterior endpoint se ha generado
+                var userTokenExiste = await _existUsersService.UserTokenExist(cambiopass);
 
-                var userTokenExiste = await _context.Usuarios.AsTracking().FirstOrDefaultAsync(x => x.EnlaceCambioPass == cambiopass.Token);
+                //Comprobamos en base de datos si el token generado con el anterior endpoint se ha generado
+                //var userTokenExiste = await _recuperarPassConEnlaceMail.ObtenerUsuarioEmailEnlace(cambiopass.Token);
+                //var userTokenExiste = await _context.Usuarios.AsTracking().FirstOrDefaultAsync(x => x.EnlaceCambioPass == cambiopass.Token);
                 //Llamamos al servicio _hashService para hashear la contraseña que el usuario pone y ha
                 //esta contraseña se le asigna un salt este sal va de la mano con el token que se ha generado
                 //en el endpoint anterior
@@ -194,20 +188,16 @@ namespace DiabetesNoteBook.Infrastructure.Controllers
                 }
                 //Se agrega la operacion
 
-                await _operationsService.AddOperacion(new DTOOperation
-                {
-                    Operacion = "Reseteo contraseña",
-                    UserId = userTokenExiste.Id
-                });
+               
                 //Si el token a caducado o no existe muestra este mensaje
 
                 return Ok("El token no existe o ha caducado.");
 
             }
-            catch
+            catch(Exception ex)
             {
                 //Este mensaje se muestra si ocurreo algun otro error con el servidor
-
+                _logger.LogError(ex + "Error al procesar el reset del email.");
                 return BadRequest("En este momento no se puede actualizar tu contraseña, intentelo más tarde por favor.");
             }
         }

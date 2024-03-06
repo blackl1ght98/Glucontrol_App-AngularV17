@@ -54,7 +54,7 @@ export default class MedicionesComponent {
     postDeporte: 0,
     notas: '',
     racionHc: 0,
-    id_Persona: 0,
+    //id_Usuario: 0,
   };
   chartOption: EChartsOption = {};
   elementoPagina: IMedicionesAzucar[] = [];
@@ -81,11 +81,11 @@ export default class MedicionesComponent {
   }
 
   ngOnInit() {
-    console.log(this.authService.userValue);
     this.getMediciones(this.authService.userValue!.id);
     this.getPersonaID();
     this.nuevaMedicion.fecha = new Date();
     this.elementoPagina.reverse();
+    console.log(this.elementoPagina);
   }
 
   get fechaInput(): string {
@@ -111,16 +111,13 @@ export default class MedicionesComponent {
   }
 
   getPersonaID() {
-    this.usuarioService
-      .getUsuarioYPersonaInfo(this.authService.userValue!.id)
-      .subscribe({
-        next: (res) => {
-          console.log(res);
-          this.usuarioLogeadoPersonaId = res[1].id as number;
-          this.nuevaMedicion.id_Persona = this.usuarioLogeadoPersonaId;
-        },
-        error: (error) => console.error(error),
-      });
+    this.usuarioService.getUserById(this.authService.userValue!.id).subscribe({
+      next: (res) => {
+        //this.usuarioLogeadoPersonaId = res[1].id as number;
+        this.nuevaMedicion.id = this.usuarioLogeadoPersonaId;
+      },
+      error: (error) => console.error(error),
+    });
   }
 
   calcularTotalDePaginas() {
@@ -296,9 +293,7 @@ export default class MedicionesComponent {
         }
         this.mediciones = mediciones.reverse();
         this.prepararDatosGrafico();
-
         this.calcularTotalDePaginas();
-
         this.cambiarPagina(this.paginaActual);
       },
       error: (error) => console.error(error),
@@ -308,7 +303,6 @@ export default class MedicionesComponent {
   postMedicion() {
     this.medicionesService.postMediciones(this.nuevaMedicion).subscribe({
       next: (res) => {
-        console.log(res);
         this.getMediciones(this.authService.userValue!.id);
         this.prepararDatosGrafico();
         this.calcularTotalDePaginas();
@@ -326,7 +320,8 @@ export default class MedicionesComponent {
           postDeporte: 0,
           notas: '',
           racionHc: 0,
-          id_Persona: this.nuevaMedicion.id_Persona,
+
+          //id_Usuario: this.nuevaMedicion.id_Usuario,
         };
 
         // this.verificarLimitesEnMediciones();
@@ -355,5 +350,26 @@ export default class MedicionesComponent {
         console.error(error);
       },
     });
+  }
+  descargarMediciones() {
+    this.medicionesService.descargarMedicionesPDF().subscribe((blob: Blob) => {
+      const file = new File([blob], 'mediciones.pdf', {
+        type: 'application/pdf',
+      });
+      const objectURL = URL.createObjectURL(file);
+      window.open(objectURL);
+    });
+  }
+  enviarMediciones() {
+    this.medicionesService.enviarMediciones().subscribe(
+      (response) => {
+        console.log('Respuesta del servidor:', response);
+        // Manejar la respuesta aquí, si es necesario
+      },
+      (error) => {
+        console.error('Error al enviar mediciones:', error);
+        // Manejar errores aquí, si es necesario
+      }
+    );
   }
 }

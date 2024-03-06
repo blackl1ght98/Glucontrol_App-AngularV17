@@ -5,6 +5,7 @@ export interface IUsuarioUpdate {
   avatar: string;
   userName: string;
   nombre: string;
+  email: string;
   primerApellido: string;
   segundoApellido: string;
   sexo: Sexo;
@@ -13,6 +14,8 @@ export interface IUsuarioUpdate {
   altura: number;
   actividad: string;
   tipoDiabetes: string;
-  medicacion: string;
+  medicacion: string[];
+  usuarioMedicacions?: any[];
+
   insulina: boolean;
 }

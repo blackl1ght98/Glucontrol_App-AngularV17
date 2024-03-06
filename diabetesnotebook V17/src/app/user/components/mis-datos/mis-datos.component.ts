@@ -28,6 +28,7 @@ export default class MisDatosComponent implements OnInit {
   public nuevaAltura = 0;
   public nuevoPeso = 0;
   accModal: boolean = false;
+  public medicacionString: string = '';
 
   usuarioLogeado: IUserLoginResponse | null = null;
   usuario: IUsuarioUpdate = {
@@ -37,13 +38,14 @@ export default class MisDatosComponent implements OnInit {
     nombre: '',
     primerApellido: '',
     segundoApellido: '',
+    email: '',
     sexo: Sexo.hombre,
     edad: 0,
     peso: 0,
     altura: 0,
     actividad: '',
     tipoDiabetes: '',
-    medicacion: '',
+    medicacion: [],
     insulina: false,
   };
 
@@ -67,6 +69,7 @@ export default class MisDatosComponent implements OnInit {
   ngOnInit(): void {
     this.authService.user.subscribe((user) => {
       this.usuarioLogeado = user;
+
       if (this.usuarioLogeado) {
         this.getUsuarioInfo(this.usuarioLogeado.id);
       }
@@ -82,7 +85,10 @@ export default class MisDatosComponent implements OnInit {
     console.log(this.accModal);
   }
   avatarHandler(avatar: string): void {
+    // Asignar el nuevo avatar a la variable nuevoAvatar
     this.nuevoAvatar = avatar;
+    // Actualizar el avatar en el objeto usuario
+    this.usuario.avatar = avatar;
   }
 
   alturaHandler(altura: number): void {
@@ -94,42 +100,58 @@ export default class MisDatosComponent implements OnInit {
   }
 
   getUsuarioInfo(usuarioId: number): void {
-    this.usuarioService.getUsuarioYPersonaInfo(usuarioId).subscribe({
+    this.usuarioService.getUserById(usuarioId).subscribe({
       next: (res) => {
         // 0 seria el usuario y 1 la persona
         this.usuario = {
-          id: res[0].id,
-          avatar: res[0].avatar,
-          userName: res[0].userName,
-          nombre: res[1].nombre,
-          primerApellido: res[1].primerApellido,
-          segundoApellido: res[1].segundoApellido,
-          sexo: res[1].sexo,
-          edad: res[1].edad,
-          peso: res[1].peso,
-          altura: res[1].altura,
-          actividad: res[1].actividad,
-          tipoDiabetes: res[1].tipoDiabetes,
-          medicacion: res[1].medicacion,
-          insulina: res[1].insulina,
+          id: res.id,
+          avatar: res.avatar,
+          userName: res.userName,
+          nombre: res.nombre,
+          primerApellido: res.primerApellido,
+          segundoApellido: res.segundoApellido,
+          email: res.email,
+          sexo: res.sexo,
+          edad: res.edad,
+          peso: res.peso,
+          altura: res.altura,
+          actividad: res.actividad,
+          tipoDiabetes: res.tipoDiabetes,
+          //medicacion: res.medicacion,
+          medicacion: res.usuarioMedicacions!.map(
+            (m) => m.idMedicacionNavigation.nombre
+          ),
+          // medicacion: this.usuario.medicacion.map((medicacion: string) =>
+          //   medicacion.trim().toLowerCase()
+          // ),
+
+          insulina: res.insulina,
         };
 
-        this.estadoInicialUsuario = {
-          id: res[0].id,
-          avatar: res[0].avatar,
-          userName: res[0].userName,
-          nombre: res[1].nombre,
-          primerApellido: res[1].primerApellido,
-          segundoApellido: res[1].segundoApellido,
-          sexo: res[1].sexo,
-          edad: res[1].edad,
-          peso: res[1].peso,
-          altura: res[1].altura,
-          actividad: res[1].actividad,
-          tipoDiabetes: res[1].tipoDiabetes,
-          medicacion: res[1].medicacion,
-          insulina: res[1].insulina,
-        };
+        this.estadoInicialUsuario = { ...this.usuario };
+        // id: res.id,
+        // avatar: res.avatar,
+        // userName: res.userName,
+        // nombre: res.nombre,
+        // primerApellido: res.primerApellido,
+        // segundoApellido: res.segundoApellido,
+        // email: res.email,
+        // sexo: res.sexo,
+        // edad: res.edad,
+        // peso: res.peso,
+        // altura: res.altura,
+        // actividad: res.actividad,
+        // tipoDiabetes: res.tipoDiabetes,
+        // //medicacion: res.medicacion,
+        // medicacion: res.usuarioMedicacions!.map(
+        //   (m) => m.idMedicacionNavigation.nombre
+        // ),
+        // insulina: res.insulina,
+        // medicacion: this.usuario.medicacion.map((medicacion: string) =>
+        //   medicacion.trim().toLowerCase()
+        // ),
+
+        //medicacion: res.medicacion || [],
 
         console.log('Usuario:', this.usuario);
 
@@ -161,26 +183,30 @@ export default class MisDatosComponent implements OnInit {
   }
 
   actualizarUsuario(): void {
+    // Verificar si se han realizado cambios en el avatar, altura o peso
     if (this.nuevoAvatar !== '') {
       this.usuario.avatar = this.nuevoAvatar;
     }
     if (this.nuevaAltura !== 0) {
       this.usuario.altura = this.nuevaAltura;
     }
-
     if (this.nuevoPeso !== 0) {
       this.usuario.peso = this.nuevoPeso;
     }
+
+    // Validar el formulario antes de enviar la solicitud
     if (!this.validarFormulario(this.usuario)) {
-      this.error = 'Formulario invalido';
+      this.error = 'Formulario inválido';
       return;
     }
-    console.log(this.usuario);
 
-    this.usuarioService.actualizarUsuario(this.usuario).subscribe({
-      next: (res) => {
-        console.log('Usuario actualizado:', res);
+    this.addMedicacion();
 
+    this.usuarioService.actualizarUsuario(this.usuario).subscribe(
+      (res: any) => {
+        console.log('Respuesta del servidor:', res);
+
+        // Actualizar la información del usuario logeado
         this.usuarioLogeado = {
           ...this.usuarioLogeado!,
           avatar: this.usuario.avatar,
@@ -189,12 +215,28 @@ export default class MisDatosComponent implements OnInit {
           segundoApellido: this.usuario.segundoApellido,
         };
 
+        // Actualizar la información del usuario en el servicio de autenticación
         this.authService.updateUser(this.usuarioLogeado);
       },
-      error: (err) => {
-        console.error(err);
-      },
-    });
+      (err) => {
+        console.error('Error en la solicitud:', err);
+      }
+    );
+  }
+  addMedicacion(): void {
+    // Si la cadena de medicación no está vacía
+    if (this.medicacionString.trim() !== '') {
+      // Dividir la cadena de medicación en un array de medicamentos
+      const nuevosMedicamentos = this.medicacionString.split(',');
+
+      // Limpiar espacios en blanco y convertir a minúsculas
+      const medicamentosTratados = nuevosMedicamentos.map((medicamento) =>
+        medicamento.trim().toLowerCase()
+      );
+
+      // Actualizar la lista de medicación del usuario con los nuevos medicamentos
+      this.usuario.medicacion = medicamentosTratados;
+    }
   }
 
   validarFormulario(usuario: IUsuarioUpdate): boolean {
